@@ -131,8 +131,10 @@ void MasterThread::run()
         else if(this->request == new QString("home")){
             homing(serial);
         }
-//        engineOn(serial);
-//        engineOff(serial);
+        else if(this->request == new QString("move")){
+            homing(serial);
+        }
+
 
         //! [9]  //! [13]
         mutex.lock();
@@ -151,57 +153,65 @@ void MasterThread::run()
 }
 
 void MasterThread::engineOn(QSerialPort &serial){
-    send(serial, MasterThread::onOffSequence());
-    send(serial, MasterThread::holdSequence());
+    send(serial, MasterThread::switchOffSequence());
+    send(serial, MasterThread::switchOnSequence());
 }
 
 void MasterThread::engineOff(QSerialPort &serial){
-    send(serial, MasterThread::onOffSequence());
+    send(serial, MasterThread::switchOffSequence());
 }
 
 void MasterThread::homing(QSerialPort &serial){
     send(serial, MasterThread::homeSequence());
 }
 
-QByteArray MasterThread::onOffSequence(){
+QByteArray MasterThread::switchOffSequence(){
     const char byteArray[] = {0x01, 0x3F, 0x05, 0x02, 0x00, 0x01, 0x3E, 0x00, 0x04};
     return QByteArray(byteArray, sizeof(byteArray));
 }
 
-QByteArray MasterThread::homeSequence(){
-    const char byteArray[] = {0x01, 0x3F, 0x09, 0x02, 0x00, 0x02, 0x05, 0x02, 0x00, 0x00, 0x00, 0x00, 0x04};
-    return QByteArray(byteArray, sizeof(byteArray));
-}
-
-QByteArray MasterThread::holdSequence(){
+QByteArray MasterThread::switchOnSequence(){
     const char byteArray[] = {0x01, 0x3F, 0x05, 0x02, 0x00, 0x01, 0x3F, 0x00, 0x04};
     return QByteArray(byteArray, sizeof(byteArray));
 }
 
-void MasterThread::send(QSerialPort &serial, QByteArray ba){
+QByteArray MasterThread::homeSequence(){
+    const char byteArray[] = {0x01, 0x3F, 0x05, 0x02, 0x00, 0x01, 0x3F, 0x08, 0x04};
+    return QByteArray(byteArray, sizeof(byteArray));
+}
 
+
+void MasterThread::send(QSerialPort &serial, QByteArray ba, bool needToRead){
+
+//    std::cout << "before write" <<std::endl;
     serial.write(ba);
+//    std::cout << "after write" <<std::endl;
     int currentWaitTimeout = waitTimeout;
 
-    if (serial.waitForBytesWritten(waitTimeout)) {
-        //! [8] //! [10]
-        // read response
-        if (serial.waitForReadyRead(currentWaitTimeout)) {
-            QByteArray responseData = serial.readAll();
-            while (serial.waitForReadyRead(10))
-                responseData += serial.readAll();
+    if (needToRead){
+        if(serial.waitForBytesWritten(waitTimeout)) {
+            //! [8] //! [10]
+            // read response
+            if (serial.waitForReadyRead(currentWaitTimeout)) {
+                QByteArray responseData = serial.readAll();
+                while (serial.waitForReadyRead(10))
+                    responseData += serial.readAll();
 
-            QString response(responseData);
-            //! [12]
-            emit this->response(response);
-            //! [10] //! [11] //! [12]
+                QString response(responseData);
+                //! [12]
+                emit this->response(response);
+                //! [10] //! [11] //! [12]
+            } else {
+                emit timeout(tr("Wait read response timeout %1")
+                             .arg(QTime::currentTime().toString()));
+            }
+            //! [9] //! [11]
         } else {
-            emit timeout(tr("Wait read response timeout %1")
+            emit timeout(tr("Wait write request timeout %1")
                          .arg(QTime::currentTime().toString()));
         }
-        //! [9] //! [11]
-    } else {
-        emit timeout(tr("Wait write request timeout %1")
-                     .arg(QTime::currentTime().toString()));
+    }
+    else {
+        emit timeout(tr("No response asked"));
     }
 }

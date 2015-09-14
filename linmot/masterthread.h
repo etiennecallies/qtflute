@@ -53,10 +53,11 @@ public:
     void engineOn(QSerialPort &serial);
     void engineOff(QSerialPort &serial);
     void homing(QSerialPort &serial);
-    void send(QSerialPort &serial, QByteArray ba);
+    void move(QSerialPort &serial);
+    void send(QSerialPort &serial, QByteArray ba, bool needToRead = true);
     void convertByteArray(QByteArray &byteArray);
-    QByteArray onOffSequence();
-    QByteArray holdSequence();
+    QByteArray switchOffSequence();
+    QByteArray switchOnSequence();
     QByteArray homeSequence();
 
 signals:
