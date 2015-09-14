@@ -53,12 +53,14 @@ public:
     void engineOn();
     void engineOff();
     void homing();
+    void prepare();
     void move();
     void send(QByteArray ba);
-    void convertByteArray(QByteArray &byteArray);
+    char getCount();
     QByteArray switchOffSequence();
     QByteArray switchOnSequence();
     QByteArray homeSequence();
+    QByteArray gotoSequence();
 
 signals:
     void response(const QString &s);
@@ -68,6 +70,7 @@ signals:
 private:
     QString portName;
     QSerialPort serial;
+    int count;
     QString request;
     QByteArray ba;
     int waitTimeout;

@@ -48,6 +48,7 @@ MasterThread::MasterThread(QObject *parent)
 //! [0]
 MasterThread::~MasterThread()
 {
+    count = 0;
     mutex.lock();
     quit = true;
     cond.wakeOne();
@@ -109,18 +110,6 @@ void MasterThread::run()
             serial.setBaudRate(QSerialPort::Baud57600);
         }
 
-//        ba.resize(9);
-//        ba[0] = 0x01;
-//        ba[1] = 0x3F;
-//        ba[2] = 0x05;
-//        ba[3] = 0x02;
-//        ba[4] = 0x00;
-//        ba[5] = 0x01;
-//        ba[6] = 0x3E;
-//        ba[7] = 0x01;
-//        ba[8] = 0x04;
-//        serial.write(ba);
-
         if(this->request == new QString("start")){
              engineOn();
         }
@@ -130,8 +119,11 @@ void MasterThread::run()
         else if(this->request == new QString("home")){
             homing();
         }
+        else if(this->request == new QString("prepare")){
+            prepare();
+        }
         else if(this->request == new QString("move")){
-            homing();
+            move();
         }
 
 
@@ -164,8 +156,23 @@ void MasterThread::homing(){
     send(MasterThread::homeSequence());
 }
 
+void MasterThread::prepare(){
+    send(MasterThread::switchOnSequence());
+}
+
 void MasterThread::move(){
-    send(MasterThread::homeSequence());
+    send(MasterThread::gotoSequence());
+}
+
+char MasterThread::getCount(){
+    if(count == 0){
+        count = 1;
+        return 0x00;
+    }
+    else {
+        count = 0;
+        return 0x01;
+    }
 }
 
 QByteArray MasterThread::switchOffSequence(){
@@ -180,6 +187,11 @@ QByteArray MasterThread::switchOnSequence(){
 
 QByteArray MasterThread::homeSequence(){
     const char byteArray[] = {0x01, 0x3F, 0x05, 0x02, 0x00, 0x01, 0x3F, 0x08, 0x04};
+    return QByteArray(byteArray, sizeof(byteArray));
+}
+
+QByteArray MasterThread::gotoSequence(){
+    const char byteArray[] = {0x01, 0x3F, 0x09, 0x02, 0x00, 0x02, getCount(), 0x02, 0x00, 0x00, 0x01, 0x00, 0x04};
     return QByteArray(byteArray, sizeof(byteArray));
 }
 
