@@ -57,10 +57,11 @@ public:
     void move();
     void send(QByteArray ba);
     char getCount();
+    char* byteDecomposition(int number);
     QByteArray switchOffSequence();
     QByteArray switchOnSequence();
     QByteArray homeSequence();
-    QByteArray gotoSequence();
+    QByteArray gotoSequence(int position);
 
 signals:
     void response(const QString &s);

@@ -43,12 +43,13 @@ QT_USE_NAMESPACE
 MasterThread::MasterThread(QObject *parent)
     : QThread(parent), waitTimeout(0), quit(false)
 {
+    count = 0;
 }
 
 //! [0]
 MasterThread::~MasterThread()
 {
-    count = 0;
+
     mutex.lock();
     quit = true;
     cond.wakeOne();
@@ -161,7 +162,7 @@ void MasterThread::prepare(){
 }
 
 void MasterThread::move(){
-    send(MasterThread::gotoSequence());
+    send(MasterThread::gotoSequence(500000));
 }
 
 char MasterThread::getCount(){
@@ -173,6 +174,17 @@ char MasterThread::getCount(){
         count = 0;
         return 0x01;
     }
+}
+
+char* MasterThread::byteDecomposition(int number){
+    char* response = new char[4];
+
+    response[0] = (number & 0xff000000L) >> 24;;
+    response[1] = (number & 0x00ff0000L) >> 16;
+    response[2] = (number & 0x0000ff00L) >> 8;
+    response[3] = (number & 0x000000ffL);
+
+    return response;
 }
 
 QByteArray MasterThread::switchOffSequence(){
@@ -190,8 +202,15 @@ QByteArray MasterThread::homeSequence(){
     return QByteArray(byteArray, sizeof(byteArray));
 }
 
-QByteArray MasterThread::gotoSequence(){
-    const char byteArray[] = {0x01, 0x3F, 0x09, 0x02, 0x00, 0x02, getCount(), 0x02, 0x00, 0x00, 0x01, 0x00, 0x04};
+QByteArray MasterThread::gotoSequence(int position){
+    char* byteDec = byteDecomposition(position);
+    const char byteArray[] = {0x01, 0x3F, 0x09, 0x02, 0x00, 0x02,
+                              getCount(), 0x02,
+                              byteDec[3],
+                              byteDec[2],
+                              byteDec[1],
+                              byteDec[0],
+                              0x04};
     return QByteArray(byteArray, sizeof(byteArray));
 }
 
