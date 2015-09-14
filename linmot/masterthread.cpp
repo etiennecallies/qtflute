@@ -89,7 +89,6 @@ void MasterThread::run()
     QString currentRequest = request;
     mutex.unlock();
     //! [5] //! [6]
-    QSerialPort serial;
 
     while (!quit) {
         //![6] //! [7]
@@ -123,16 +122,16 @@ void MasterThread::run()
 //        serial.write(ba);
 
         if(this->request == new QString("start")){
-             engineOn(serial);
+             engineOn();
         }
         else if(this->request == new QString("stop")){
-            engineOff(serial);
+            engineOff();
         }
         else if(this->request == new QString("home")){
-            homing(serial);
+            homing();
         }
         else if(this->request == new QString("move")){
-            homing(serial);
+            homing();
         }
 
 
@@ -152,17 +151,21 @@ void MasterThread::run()
     //! [13]
 }
 
-void MasterThread::engineOn(QSerialPort &serial){
-    send(serial, MasterThread::switchOffSequence());
-    send(serial, MasterThread::switchOnSequence());
+void MasterThread::engineOn(){
+    send(MasterThread::switchOffSequence());
+    send(MasterThread::switchOnSequence());
 }
 
-void MasterThread::engineOff(QSerialPort &serial){
-    send(serial, MasterThread::switchOffSequence());
+void MasterThread::engineOff(){
+    send(MasterThread::switchOffSequence());
 }
 
-void MasterThread::homing(QSerialPort &serial){
-    send(serial, MasterThread::homeSequence());
+void MasterThread::homing(){
+    send(MasterThread::homeSequence());
+}
+
+void MasterThread::move(){
+    send(MasterThread::homeSequence());
 }
 
 QByteArray MasterThread::switchOffSequence(){
@@ -181,37 +184,29 @@ QByteArray MasterThread::homeSequence(){
 }
 
 
-void MasterThread::send(QSerialPort &serial, QByteArray ba, bool needToRead){
-
-//    std::cout << "before write" <<std::endl;
+void MasterThread::send(QByteArray ba){
     serial.write(ba);
-//    std::cout << "after write" <<std::endl;
     int currentWaitTimeout = waitTimeout;
 
-    if (needToRead){
-        if(serial.waitForBytesWritten(waitTimeout)) {
-            //! [8] //! [10]
-            // read response
-            if (serial.waitForReadyRead(currentWaitTimeout)) {
-                QByteArray responseData = serial.readAll();
-                while (serial.waitForReadyRead(10))
-                    responseData += serial.readAll();
+    if(serial.waitForBytesWritten(waitTimeout)) {
+        //! [8] //! [10]
+        // read response
+        if (serial.waitForReadyRead(currentWaitTimeout)) {
+            QByteArray responseData = serial.readAll();
+            while (serial.waitForReadyRead(10))
+                responseData += serial.readAll();
 
-                QString response(responseData);
-                //! [12]
-                emit this->response(response);
-                //! [10] //! [11] //! [12]
-            } else {
-                emit timeout(tr("Wait read response timeout %1")
-                             .arg(QTime::currentTime().toString()));
-            }
-            //! [9] //! [11]
+            QString response(responseData);
+            //! [12]
+            emit this->response(response);
+            //! [10] //! [11] //! [12]
         } else {
-            emit timeout(tr("Wait write request timeout %1")
+            emit timeout(tr("Wait read response timeout %1")
                          .arg(QTime::currentTime().toString()));
         }
-    }
-    else {
-        emit timeout(tr("No response asked"));
+        //! [9] //! [11]
+    } else {
+        emit timeout(tr("Wait write request timeout %1")
+                     .arg(QTime::currentTime().toString()));
     }
 }

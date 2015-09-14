@@ -50,11 +50,11 @@ public:
 
     void transaction(const QString &portName, int waitTimeout, const QString &request);
     void run();
-    void engineOn(QSerialPort &serial);
-    void engineOff(QSerialPort &serial);
-    void homing(QSerialPort &serial);
-    void move(QSerialPort &serial);
-    void send(QSerialPort &serial, QByteArray ba, bool needToRead = true);
+    void engineOn();
+    void engineOff();
+    void homing();
+    void move();
+    void send(QByteArray ba);
     void convertByteArray(QByteArray &byteArray);
     QByteArray switchOffSequence();
     QByteArray switchOnSequence();
@@ -67,6 +67,7 @@ signals:
 
 private:
     QString portName;
+    QSerialPort serial;
     QString request;
     QByteArray ba;
     int waitTimeout;
