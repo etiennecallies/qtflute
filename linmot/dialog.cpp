@@ -65,19 +65,19 @@ Dialog::Dialog(QWidget *parent)
     waitResponseSpinBox->setValue(1000);
 
     QGridLayout *mainLayout = new QGridLayout;
-    mainLayout->addWidget(serialPortLabel, 0, 0);
-    mainLayout->addWidget(serialPortComboBox, 0, 1);
+    mainLayout->addWidget(requestLabel, 0, 0);
+    mainLayout->addWidget(requestLineEdit, 0, 1, 1, 2);
+    mainLayout->addWidget(serialPortLabel, 2, 0);
+    mainLayout->addWidget(serialPortComboBox, 2, 1);
     mainLayout->addWidget(waitResponseLabel, 1, 0);
     mainLayout->addWidget(waitResponseSpinBox, 1, 1);
-    mainLayout->addWidget(runButton, 0, 2, 2, 1);
-    mainLayout->addWidget(requestLabel, 2, 0);
-    mainLayout->addWidget(requestLineEdit, 2, 1, 1, 3);
+    mainLayout->addWidget(runButton, 0, 3, 2, 1);
     mainLayout->addWidget(trafficLabel, 3, 0, 1, 4);
     mainLayout->addWidget(statusLabel, 4, 0, 1, 5);
     setLayout(mainLayout);
 
     setWindowTitle(tr("Blocking Master"));
-    serialPortComboBox->setFocus();
+    requestLineEdit->setFocus();
 
     connect(runButton, SIGNAL(clicked()),
             this, SLOT(transaction()));
@@ -87,11 +87,15 @@ Dialog::Dialog(QWidget *parent)
             this, SLOT(processError(QString)));
     connect(&thread, SIGNAL(timeout(QString)),
             this, SLOT(processTimeout(QString)));
+    connect(&thread, SIGNAL(enable()),
+            this, SLOT(enableControl()));
+    connect(&thread, SIGNAL(disable()),
+            this, SLOT(disableControl()));
 }
 
 void Dialog::transaction()
 {
-    setControlsEnabled(false);
+//    setControlsEnabled(false);
     statusLabel->setText(tr("Status: Running, connected to port %1.")
                          .arg(serialPortComboBox->currentText()));
     thread.transaction(serialPortComboBox->currentText(),
@@ -99,9 +103,19 @@ void Dialog::transaction()
                        requestLineEdit->text());
 }
 
-void Dialog::showResponse(const QString &s)
+void Dialog::enableControl()
 {
     setControlsEnabled(true);
+}
+
+void Dialog::disableControl()
+{
+    setControlsEnabled(false);
+}
+
+void Dialog::showResponse(const QString &s)
+{
+//    setControlsEnabled(true);
     trafficLabel->setText(tr("Traffic, transaction #%1:"
                              "\n\r-request: %2"
                              "\n\r-response: %3")
@@ -110,14 +124,14 @@ void Dialog::showResponse(const QString &s)
 
 void Dialog::processError(const QString &s)
 {
-    setControlsEnabled(true);
+//    setControlsEnabled(true);
     statusLabel->setText(tr("Status: Not running, %1.").arg(s));
     trafficLabel->setText(tr("No traffic."));
 }
 
 void Dialog::processTimeout(const QString &s)
 {
-    setControlsEnabled(true);
+//    setControlsEnabled(true);
     statusLabel->setText(tr("Status: Running, %1.").arg(s));
     trafficLabel->setText(tr("No traffic."));
 }

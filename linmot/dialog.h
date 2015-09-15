@@ -60,6 +60,8 @@ private slots:
     void showResponse(const QString &s);
     void processError(const QString &s);
     void processTimeout(const QString &s);
+    void enableControl();
+    void disableControl();
 
 private:
     void setControlsEnabled(bool enable);

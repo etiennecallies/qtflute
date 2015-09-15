@@ -70,6 +70,8 @@ signals:
     void response(const QString &s);
     void error(const QString &s);
     void timeout(const QString &s);
+    void enable();
+    void disable();
 
 private:
     QString portName;
@@ -81,6 +83,7 @@ private:
     QMutex mutex;
     QWaitCondition cond;
     bool quit;
+    bool home;
 };
 //! [0]
 

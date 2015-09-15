@@ -46,9 +46,7 @@ MasterThread::MasterThread(QObject *parent)
     : QThread(parent), waitTimeout(0), quit(false)
 {
     count = 0;
-    int i = 57;
-    QString a = QString("%1").arg(i, 2, 16, QChar('0'));
-    qDebug() << a;
+    home = false;
 }
 
 //! [0]
@@ -162,7 +160,12 @@ void MasterThread::engineOff(){
 }
 
 void MasterThread::homing(){
+    emit this->disable();
     send(MasterThread::homeSequence());
+    while(!home){
+        MasterThread::read();
+    }
+    emit this->enable();
 }
 
 void MasterThread::prepare(){
@@ -191,7 +194,7 @@ char MasterThread::getCount(){
 char* MasterThread::byteDecomposition(int number){
     char* response = new char[4];
 
-    response[0] = (number & 0xff000000L) >> 24;;
+    response[0] = (number & 0xff000000L) >> 24;
     response[1] = (number & 0x00ff0000L) >> 16;
     response[2] = (number & 0x0000ff00L) >> 8;
     response[3] = (number & 0x000000ffL);
@@ -233,7 +236,7 @@ QByteArray MasterThread::gotoSequence(int position){
 }
 
 
-void MasterThread::send(QByteArray ba, bool read){
+void MasterThread::send(QByteArray ba, bool readHome){
     serial.write(ba);
 
     QByteArray buffer;
@@ -245,12 +248,26 @@ void MasterThread::send(QByteArray ba, bool read){
     QByteArray responseData = buffer;
 
     QString responseString = "";
-    if(read){
-        std::cout << "responseData.size(): " << responseData.size() << std::endl;
-        for(int i = 0; i < responseData.size(); i++){
-            int j = (((int)responseData.at(i)) + 256) % 256;
-            std::cout << j << std::endl;
-            responseString += QString("%1").arg(j, 2, 16, QChar('0')) + QString(" ");
+    const int n = responseData.size();
+    std::cout << "responseData.size(): " << n << std::endl;
+    int byteArray [16];
+    for(int i = 0; i < n; i++){
+        int j = (((int)responseData.at(i)) + 256) % 256;
+        if(n == 16){
+            byteArray[i] = j;
+        }
+        std::cout << j << std::endl;
+        responseString += QString("%1").arg(j, 2, 16, QChar('0')) + QString(" ");
+    }
+
+    if(readHome){
+        if(n == 16){
+            std::cout << byteArray[8] << std::endl;
+            home = ((byteArray[8] & 0x08L) == 8) ;
+            std::cout << home << std::endl;
+        }
+        else {
+            home = false;
         }
     }
     emit this->response(responseString);
