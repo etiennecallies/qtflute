@@ -56,6 +56,7 @@ public:
     void homing();
     void prepare();
     void move();
+    void goHome();
     void read();
     void send(QByteArray ba, bool read = false);
     char getCount();
@@ -67,7 +68,7 @@ public:
     QByteArray gotoSequence(int position);
 
 signals:
-    void response(const QString &s);
+    void response(const QString &s, const QString &t);
     void error(const QString &s);
     void timeout(const QString &s);
     void enable();

@@ -45,7 +45,7 @@ QT_USE_NAMESPACE
 MasterThread::MasterThread(QObject *parent)
     : QThread(parent), waitTimeout(0), quit(false)
 {
-    count = 0;
+    count = rand() % 16;
     home = false;
 }
 
@@ -132,6 +132,9 @@ void MasterThread::run()
         else if(this->request == new QString("read")){
             read();
         }
+        else if(this->request == new QString("gohome")){
+            goHome();
+        }
 
 
         //! [9]  //! [13]
@@ -149,6 +152,8 @@ void MasterThread::run()
     }
     //! [13]
 }
+
+//COMMANDS
 
 void MasterThread::engineOn(){
     send(MasterThread::switchOffSequence());
@@ -174,7 +179,17 @@ void MasterThread::prepare(){
 }
 
 void MasterThread::move(){
+    send(MasterThread::gotoSequence(500000));
+    QTest::qWait(500);
     send(MasterThread::gotoSequence(50000));
+    QTest::qWait(500);
+    send(MasterThread::gotoSequence(0));
+    QTest::qWait(500);
+    send(MasterThread::gotoSequence(100000));
+}
+
+void MasterThread::goHome(){
+    send(MasterThread::gotoSequence(0));
 }
 
 void MasterThread::read(){
@@ -182,14 +197,11 @@ void MasterThread::read(){
 }
 
 char MasterThread::getCount(){
-    if(count == 0){
-        count = 1;
-        return 0x00;
-    }
-    else {
+    count += 1;
+    if(count == 16){
         count = 0;
-        return 0x01;
     }
+    return count;
 }
 
 char* MasterThread::byteDecomposition(int number){
@@ -202,6 +214,8 @@ char* MasterThread::byteDecomposition(int number){
 
     return response;
 }
+
+//SEQUENCES
 
 QByteArray MasterThread::switchOffSequence(){
     const char byteArray[] = {0x01, 0x3F, 0x05, 0x02, 0x00, 0x01, 0x3E, 0x00, 0x04};
@@ -236,8 +250,16 @@ QByteArray MasterThread::gotoSequence(int position){
     return QByteArray(byteArray, sizeof(byteArray));
 }
 
+//READ & WRITE
 
 void MasterThread::send(QByteArray ba, bool readHome){
+    QString requestString = "";
+    const int m = ba.size();
+    for(int i = 0; i < m; i++){
+        int j = (((int)ba.at(i)) + 256) % 256;
+        requestString += QString("%1").arg(j, 2, 16, QChar('0')) + QString(" ");
+    }
+    qDebug() << requestString;
     serial.write(ba);
 
     QByteArray buffer;
@@ -269,5 +291,6 @@ void MasterThread::send(QByteArray ba, bool readHome){
             home = false;
         }
     }
-    emit this->response(responseString);
+    qDebug() << responseString;
+    emit this->response(requestString, responseString);
 }

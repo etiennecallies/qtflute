@@ -81,8 +81,8 @@ Dialog::Dialog(QWidget *parent)
 
     connect(runButton, SIGNAL(clicked()),
             this, SLOT(transaction()));
-    connect(&thread, SIGNAL(response(QString)),
-            this, SLOT(showResponse(QString)));
+    connect(&thread, SIGNAL(response(QString, QString)),
+            this, SLOT(showResponse(QString, QString)));
     connect(&thread, SIGNAL(error(QString)),
             this, SLOT(processError(QString)));
     connect(&thread, SIGNAL(timeout(QString)),
@@ -113,13 +113,13 @@ void Dialog::disableControl()
     setControlsEnabled(false);
 }
 
-void Dialog::showResponse(const QString &s)
+void Dialog::showResponse(const QString &s, const QString &t)
 {
 //    setControlsEnabled(true);
     trafficLabel->setText(tr("Traffic, transaction #%1:"
                              "\n\r-request: %2"
                              "\n\r-response: %3")
-                          .arg(++transactionCount).arg(requestLineEdit->text()).arg(s));
+                          .arg(++transactionCount).arg(s).arg(t));
 }
 
 void Dialog::processError(const QString &s)

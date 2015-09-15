@@ -57,7 +57,7 @@ public:
 
 private slots:
     void transaction();
-    void showResponse(const QString &s);
+    void showResponse(const QString &s,  const QString &t);
     void processError(const QString &s);
     void processTimeout(const QString &s);
     void enableControl();
