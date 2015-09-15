@@ -165,6 +165,7 @@ void MasterThread::homing(){
     while(!home){
         MasterThread::read();
     }
+    MasterThread::prepare();
     emit this->enable();
 }
 
@@ -173,7 +174,7 @@ void MasterThread::prepare(){
 }
 
 void MasterThread::move(){
-    send(MasterThread::gotoSequence(500000));
+    send(MasterThread::gotoSequence(50000));
 }
 
 void MasterThread::read(){
@@ -249,14 +250,12 @@ void MasterThread::send(QByteArray ba, bool readHome){
 
     QString responseString = "";
     const int n = responseData.size();
-    std::cout << "responseData.size(): " << n << std::endl;
     int byteArray [16];
     for(int i = 0; i < n; i++){
         int j = (((int)responseData.at(i)) + 256) % 256;
         if(n == 16){
             byteArray[i] = j;
         }
-        std::cout << j << std::endl;
         responseString += QString("%1").arg(j, 2, 16, QChar('0')) + QString(" ");
     }
 
