@@ -38,6 +38,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QSerialPort>
+#include <QTest>
 
 //! [0]
 class MasterThread : public QThread
@@ -55,12 +56,14 @@ public:
     void homing();
     void prepare();
     void move();
-    void send(QByteArray ba);
+    void read();
+    void send(QByteArray ba, bool read = false);
     char getCount();
     char* byteDecomposition(int number);
     QByteArray switchOffSequence();
     QByteArray switchOnSequence();
     QByteArray homeSequence();
+    QByteArray readSequence();
     QByteArray gotoSequence(int position);
 
 signals:

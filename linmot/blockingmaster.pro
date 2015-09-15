@@ -1,4 +1,4 @@
-QT += widgets serialport
+QT += widgets serialport testlib
 
 TARGET = blockingmaster
 TEMPLATE = app

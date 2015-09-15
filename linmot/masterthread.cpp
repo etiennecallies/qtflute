@@ -37,6 +37,8 @@
 
 #include <QTime>
 #include <iostream>
+#include <QDebug>
+#include <QTest>
 
 QT_USE_NAMESPACE
 
@@ -44,6 +46,9 @@ MasterThread::MasterThread(QObject *parent)
     : QThread(parent), waitTimeout(0), quit(false)
 {
     count = 0;
+    int i = 57;
+    QString a = QString("%1").arg(i, 2, 16, QChar('0'));
+    qDebug() << a;
 }
 
 //! [0]
@@ -126,6 +131,9 @@ void MasterThread::run()
         else if(this->request == new QString("move")){
             move();
         }
+        else if(this->request == new QString("read")){
+            read();
+        }
 
 
         //! [9]  //! [13]
@@ -165,6 +173,10 @@ void MasterThread::move(){
     send(MasterThread::gotoSequence(500000));
 }
 
+void MasterThread::read(){
+    send(MasterThread::readSequence(), true);
+}
+
 char MasterThread::getCount(){
     if(count == 0){
         count = 1;
@@ -202,6 +214,12 @@ QByteArray MasterThread::homeSequence(){
     return QByteArray(byteArray, sizeof(byteArray));
 }
 
+QByteArray MasterThread::readSequence(){
+    const char byteArray[] = {0x01, 0x3F, 0x03, 0x02, 0x01, 0x00, 0x04};
+    return QByteArray(byteArray, sizeof(byteArray));
+}
+
+
 QByteArray MasterThread::gotoSequence(int position){
     char* byteDec = byteDecomposition(position);
     const char byteArray[] = {0x01, 0x3F, 0x09, 0x02, 0x00, 0x02,
@@ -215,29 +233,25 @@ QByteArray MasterThread::gotoSequence(int position){
 }
 
 
-void MasterThread::send(QByteArray ba){
+void MasterThread::send(QByteArray ba, bool read){
     serial.write(ba);
-    int currentWaitTimeout = waitTimeout;
 
-    if(serial.waitForBytesWritten(waitTimeout)) {
-        //! [8] //! [10]
-        // read response
-        if (serial.waitForReadyRead(currentWaitTimeout)) {
-            QByteArray responseData = serial.readAll();
-            while (serial.waitForReadyRead(10))
-                responseData += serial.readAll();
-
-            QString response(responseData);
-            //! [12]
-            emit this->response(response);
-            //! [10] //! [11] //! [12]
-        } else {
-            emit timeout(tr("Wait read response timeout %1")
-                         .arg(QTime::currentTime().toString()));
-        }
-        //! [9] //! [11]
-    } else {
-        emit timeout(tr("Wait write request timeout %1")
-                     .arg(QTime::currentTime().toString()));
+    QByteArray buffer;
+    while(buffer.size() == 0){
+        QTest::qWait(10);
+        buffer = serial.readAll();
     }
+
+    QByteArray responseData = buffer;
+
+    QString responseString = "";
+    if(read){
+        std::cout << "responseData.size(): " << responseData.size() << std::endl;
+        for(int i = 0; i < responseData.size(); i++){
+            int j = (((int)responseData.at(i)) + 256) % 256;
+            std::cout << j << std::endl;
+            responseString += QString("%1").arg(j, 2, 16, QChar('0')) + QString(" ");
+        }
+    }
+    emit this->response(responseString);
 }
