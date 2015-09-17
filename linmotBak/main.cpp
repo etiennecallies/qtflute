@@ -31,58 +31,14 @@
 **
 ****************************************************************************/
 
-#ifndef DIALOG_H
-#define DIALOG_H
+#include <QApplication>
 
-#include <QDialog>
+#include "dialog.h"
 
-#include "masterthread.h"
-
-QT_BEGIN_NAMESPACE
-
-class QLabel;
-class QLineEdit;
-class QSpinBox;
-class QPushButton;
-class QComboBox;
-
-QT_END_NAMESPACE
-
-class Dialog : public QDialog
+int main(int argc, char *argv[])
 {
-    Q_OBJECT
-
-public:
-    Dialog(QWidget *parent = 0);
-
-private slots:
-    void transaction();
-    void showResponse(const QString &s,  const QString &t);
-    void processError(const QString &s);
-    void processTimeout(const QString &s);
-    void enableControl();
-    void disableControl();
-
-private:
-    void setControlsEnabled(bool enable);
-
-private:
-    int transactionCount;
-    QLabel * serialPortLabel_motor;
-    QComboBox *serialPortComboBox_motor;
-
-    QLabel *serialPortLabel_arduino; // new MHX
-    QComboBox *serialPortComboBox_arduino;
-
-    QLabel *waitResponseLabel;
-    QSpinBox *waitResponseSpinBox;
-    QLabel *requestLabel;
-    QLineEdit *requestLineEdit;
-    QLabel *trafficLabel;
-    QLabel *statusLabel;
-    QPushButton *runButton;
-
-    MasterThread thread;
-};
-
-#endif // DIALOG_H
+    QApplication app(argc, argv);
+    Dialog dialog;
+    dialog.show();
+    return app.exec();
+}

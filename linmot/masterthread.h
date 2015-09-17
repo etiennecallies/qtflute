@@ -40,6 +40,10 @@
 #include <QSerialPort>
 #include <QTest>
 
+// new MHX
+#define MOTOR 0
+#define ARDUINO 1
+
 //! [0]
 class MasterThread : public QThread
 {
@@ -49,7 +53,7 @@ public:
     MasterThread(QObject *parent = 0);
     ~MasterThread();
 
-    void transaction(const QString &portName, int waitTimeout, const QString &request);
+    void transaction(const QString &portName_motor, const QString &portName_arduino, int waitTimeout, const QString &request);
     void run();
     void engineOn();
     void engineOff();
@@ -60,7 +64,8 @@ public:
     void goHome();
     void read();
     void voltage(int volt);
-    void send(QByteArray ba, bool read = false);
+    void combine(int volt);
+    void send(int where, QByteArray ba, bool read = false);
     char getCount();
     char* byteDecomposition(int number);
     QByteArray switchOffSequence();
@@ -69,7 +74,7 @@ public:
     QByteArray readSequence();
     QByteArray voltSequence(int volt);
     QByteArray gotoSequence(int position);
-    QByteArray gotoslowSequence(int position, int maxVelocity, int maxAcc, int maxDec);
+    QByteArray gotoSlowSequence(int position, int maxVelocity, int maxAcc, int maxDec);
 
 signals:
     void response(const QString &s, const QString &t);
@@ -79,8 +84,9 @@ signals:
     void disable();
 
 private:
-    QString portName;
-    QSerialPort serial;
+    QString portName[2];
+    QSerialPort serial[2];
+
     int count;
     QString request;
     QByteArray ba;

@@ -52,6 +52,7 @@ MasterThread::MasterThread(QObject *parent)
 //! [0]
 MasterThread::~MasterThread()
 {
+
     mutex.lock();
     quit = true;
     cond.wakeOne();
@@ -61,16 +62,13 @@ MasterThread::~MasterThread()
 //! [0]
 
 //! [1] //! [2]
-void MasterThread::transaction(const QString &portName_motor, const QString &portName_arduino, int waitTimeout, const QString &request)
+void MasterThread::transaction(const QString &portName, int waitTimeout, const QString &request)
 {
     //! [1]
     QMutexLocker locker(&mutex);
-    this->portName[MOTOR] = portName_motor;
-    this->portName[ARDUINO] = portName_arduino;
-
+    this->portName = portName;
     this->waitTimeout = waitTimeout;
     this->request = request;
-
     //! [3]
     if (!isRunning())
         start();
@@ -82,60 +80,54 @@ void MasterThread::transaction(const QString &portName_motor, const QString &por
 //! [4]
 void MasterThread::run()
 {
-    int i=0;
-    bool currentPortNameChanged[] = {false, false};
-    QString currentPortName[2];
+    bool currentPortNameChanged = false;
 
     mutex.lock();
-
-    for(i=0; i<2; i++)
-    {
-        if (currentPortName[i] != portName[i]) {
-            currentPortName[i] = portName[i];
-            currentPortNameChanged[i] = true;
-        }
+    //! [4] //! [5]
+    QString currentPortName;
+    if (currentPortName != portName) {
+        currentPortName = portName;
+        currentPortNameChanged = true;
     }
 
     int currentWaitTimeout = waitTimeout;
     QString currentRequest = request;
-
     mutex.unlock();
+    //! [5] //! [6]
 
     while (!quit) {
         //![6] //! [7]
-        for(i=0; i<2; i++){
-            if (currentPortNameChanged[i]) {
-                serial[i].close();
-                serial[i].setPortName(currentPortName[i]);
+        if (currentPortNameChanged) {
+            serial.close();
+            serial.setPortName(currentPortName);
 
-                if (!serial[i].open(QIODevice::ReadWrite)) {
-                    emit error(tr("Can't open %1, error code %2")
-                               .arg(portName[i]).arg(serial[i].error()));
-                    break;
-                }
+            if (!serial.open(QIODevice::ReadWrite)) {
+                emit error(tr("Can't open %1, error code %2")
+                           .arg(portName).arg(serial.error()));
+                return;
+            }
 
-                serial[i].setStopBits(QSerialPort::OneStop);
-                serial[i].setParity(QSerialPort::NoParity);
-                serial[i].setFlowControl(QSerialPort::NoFlowControl);
-                serial[i].setDataBits(QSerialPort::Data8);
-
-                if(i == ARDUINO){
-                    serial[i].setDataTerminalReady(true);
-                    serial[i].setBaudRate(QSerialPort::Baud9600);
-                }
-                else { // MOTOR
-                    serial[i].setBaudRate(QSerialPort::Baud57600);
-                }
+            if(this->request == new QString("volt")){
+                serial.setStopBits(QSerialPort::OneStop);
+                serial.setParity(QSerialPort::NoParity);
+                serial.setFlowControl(QSerialPort::NoFlowControl);
+                serial.setDataBits(QSerialPort::Data8);
+                serial.setBaudRate(QSerialPort::Baud9600);
+            }
+            else {
+                serial.setStopBits(QSerialPort::OneStop);
+                serial.setParity(QSerialPort::NoParity);
+                serial.setFlowControl(QSerialPort::NoFlowControl);
+                serial.setDataBits(QSerialPort::Data8);
+                serial.setBaudRate(QSerialPort::Baud57600);
             }
         }
 
         if(this->request == new QString("start")){
-
              engineOn();
         }
         else if(this->request == new QString("stop")){
             engineOff();
-            voltage(0);
         }
         else if(this->request == new QString("home")){
             homing();
@@ -149,10 +141,6 @@ void MasterThread::run()
         else if(this->request == new QString("slow")){
             slow();
         }
-        // new MHX
-        else if(this->request == new QString("combine")){
-            combine(2);
-        }
         else if(this->request == new QString("read")){
             read();
         }
@@ -162,28 +150,19 @@ void MasterThread::run()
         else if(this->request == new QString("volt")){
             voltage(1);
         }
-        else if(this->request == new QString("volt0")){
-            voltage(0);
-        }
 
 
         //! [9]  //! [13]
         mutex.lock();
         cond.wait(&mutex);
-
-        for(i=0; i<2; i++)
-        {
-            if (currentPortName[i] != portName[i]) {
-                currentPortName[i] = portName[i];
-                currentPortNameChanged[i] = true;
-            } else {
-                currentPortNameChanged[i] = false;
-            }
+        if (currentPortName != portName) {
+            currentPortName = portName;
+            currentPortNameChanged = true;
+        } else {
+            currentPortNameChanged = false;
         }
-
         currentWaitTimeout = waitTimeout;
         currentRequest = request;
-
         mutex.unlock();
     }
     //! [13]
@@ -192,17 +171,17 @@ void MasterThread::run()
 //COMMANDS
 
 void MasterThread::engineOn(){
-    send(MOTOR, MasterThread::switchOffSequence());
-    send(MOTOR, MasterThread::switchOnSequence());
+    send(MasterThread::switchOffSequence());
+    send(MasterThread::switchOnSequence());
 }
 
 void MasterThread::engineOff(){
-    send(MOTOR, MasterThread::switchOffSequence());
+    send(MasterThread::switchOffSequence());
 }
 
 void MasterThread::homing(){
     emit this->disable();
-    send(MOTOR, MasterThread::homeSequence());
+    send(MasterThread::homeSequence());
     while(!home){
         MasterThread::read();
     }
@@ -211,40 +190,33 @@ void MasterThread::homing(){
 }
 
 void MasterThread::prepare(){
-    send(MOTOR, MasterThread::switchOnSequence());
+    send(MasterThread::switchOnSequence());
 }
 
 void MasterThread::move(){
-    send(MOTOR, MasterThread::gotoSequence(500000));
+    send(MasterThread::gotoSequence(500000));
     QTest::qWait(500);
-    send(MOTOR, MasterThread::gotoSequence(50000));
+    send(MasterThread::gotoSequence(50000));
     QTest::qWait(500);
-    send(MOTOR, MasterThread::gotoSequence(0));
+    send(MasterThread::gotoSequence(0));
     QTest::qWait(500);
-    send(MOTOR, MasterThread::gotoSequence(100000));
-}
-
-void MasterThread::combine(int volt){
-    voltage(volt);
-    slow();
+    send(MasterThread::gotoSequence(100000));
 }
 
 void MasterThread::slow(){
-    emit this->disable();
-    send(MOTOR, MasterThread::gotoSlowSequence(500000, 20000, 20000, 20000));
-    emit this->enable();
+    send(MasterThread::gotoslowSequence(500000, 20000, 20000, 20000));
 }
 
 void MasterThread::goHome(){
-    send(MOTOR, MasterThread::gotoSequence(0));
+    send(MasterThread::gotoSequence(0));
 }
 
 void MasterThread::read(){
-    send(MOTOR, MasterThread::readSequence(), true);
+    send(MasterThread::readSequence(), true);
 }
 
 void MasterThread::voltage(int volt){
-    send(ARDUINO, MasterThread::voltSequence(volt));
+    send(MasterThread::voltSequence(volt));
 }
 
 char MasterThread::getCount(){
@@ -306,7 +278,7 @@ QByteArray MasterThread::gotoSequence(int position){
     return QByteArray(byteArray, sizeof(byteArray));
 }
 
-QByteArray MasterThread::gotoSlowSequence(int position, int maxVelocity, int maxAcc, int maxDec){
+QByteArray MasterThread::gotoslowSequence(int position, int maxVelocity, int maxAcc, int maxDec){
     char* byteDec = byteDecomposition(position);
     char* byteDecVel = byteDecomposition(maxVelocity);
     char* byteDecAcc = byteDecomposition(maxAcc);
@@ -335,50 +307,45 @@ QByteArray MasterThread::gotoSlowSequence(int position, int maxVelocity, int max
 
 //READ & WRITE
 
-void MasterThread::send(int where, QByteArray ba, bool readHome){
-
+void MasterThread::send(QByteArray ba, bool readHome){
     QString requestString = "";
     const int m = ba.size();
     for(int i = 0; i < m; i++){
         int j = (((int)ba.at(i)) + 256) % 256;
         requestString += QString("%1").arg(j, 2, 16, QChar('0')) + QString(" ");
     }
-    serial[where].write(ba);
-    //serial[where].flush();
-    if(where == ARDUINO)
-        serial[where].waitForBytesWritten(waitTimeout); // nécessaire pour bien envoyer les données à Arduino
+    qDebug() << requestString;
+    serial.write(ba);
 
-    if(where == MOTOR){
-        QByteArray buffer;
-        while(buffer.size() == 0){
-            QTest::qWait(10);
-            buffer = serial[where].readAll();
-        }
-
-        QByteArray responseData = buffer;
-
-        QString responseString = "";
-        const int n = responseData.size();
-        int byteArray [16];
-        for(int i = 0; i < n; i++){
-            int j = (((int)responseData.at(i)) + 256) % 256;
-            if(n == 16){
-                byteArray[i] = j;
-            }
-            responseString += QString("%1").arg(j, 2, 16, QChar('0')) + QString(" ");
-        }
-
-        if(readHome){
-            if(n == 16){
-                // std::cout << byteArray[8] << std::endl;
-                home = ((byteArray[8] & 0x08L) == 8) ;
-                // std::cout << home << std::endl;
-            }
-            else {
-                home = false;
-            }
-        }
-        qDebug() << responseString;
-        emit this->response(requestString, responseString);
+    QByteArray buffer;
+    while(buffer.size() == 0){
+        QTest::qWait(10);
+        buffer = serial.readAll();
     }
+
+    QByteArray responseData = buffer;
+
+    QString responseString = "";
+    const int n = responseData.size();
+    int byteArray [16];
+    for(int i = 0; i < n; i++){
+        int j = (((int)responseData.at(i)) + 256) % 256;
+        if(n == 16){
+            byteArray[i] = j;
+        }
+        responseString += QString("%1").arg(j, 2, 16, QChar('0')) + QString(" ");
+    }
+
+    if(readHome){
+        if(n == 16){
+            std::cout << byteArray[8] << std::endl;
+            home = ((byteArray[8] & 0x08L) == 8) ;
+            std::cout << home << std::endl;
+        }
+        else {
+            home = false;
+        }
+    }
+    qDebug() << responseString;
+    emit this->response(requestString, responseString);
 }

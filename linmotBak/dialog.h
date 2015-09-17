@@ -68,12 +68,8 @@ private:
 
 private:
     int transactionCount;
-    QLabel * serialPortLabel_motor;
-    QComboBox *serialPortComboBox_motor;
-
-    QLabel *serialPortLabel_arduino; // new MHX
-    QComboBox *serialPortComboBox_arduino;
-
+    QLabel *serialPortLabel;
+    QComboBox *serialPortComboBox;
     QLabel *waitResponseLabel;
     QSpinBox *waitResponseSpinBox;
     QLabel *requestLabel;

@@ -1,6 +1,6 @@
 QT += widgets serialport testlib
 
-TARGET = blockingmaster
+TARGET = controleSync
 TEMPLATE = app
 
 HEADERS += \

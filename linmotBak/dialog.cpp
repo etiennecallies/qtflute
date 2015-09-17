@@ -47,10 +47,8 @@ QT_USE_NAMESPACE
 Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
     , transactionCount(0)
-    , serialPortLabel_motor(new QLabel(tr("Motor port:")))
-    , serialPortComboBox_motor(new QComboBox())
-    , serialPortLabel_arduino(new QLabel(tr("Arduino port:"))) // new MHX
-    , serialPortComboBox_arduino(new QComboBox())
+    , serialPortLabel(new QLabel(tr("Serial port:")))
+    , serialPortComboBox(new QComboBox())
     , waitResponseLabel(new QLabel(tr("Wait response, msec:")))
     , waitResponseSpinBox(new QSpinBox())
     , requestLabel(new QLabel(tr("Request:")))
@@ -60,39 +58,25 @@ Dialog::Dialog(QWidget *parent)
     , runButton(new QPushButton(tr("Start")))
 {
     foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
-    {
-        serialPortComboBox_motor->addItem(info.portName());
-        serialPortComboBox_arduino->addItem(info.portName());
-    }
-        serialPortComboBox_motor->setCurrentText("COM9");
-        serialPortComboBox_arduino->setCurrentText("COM12");
+        serialPortComboBox->addItem(info.portName());
+    serialPortComboBox->setCurrentText("COM9");
 
     waitResponseSpinBox->setRange(0, 10000);
     waitResponseSpinBox->setValue(1000);
 
-    int row = 0;
-
     QGridLayout *mainLayout = new QGridLayout;
-    mainLayout->addWidget(requestLabel, row, 0);
-    mainLayout->addWidget(requestLineEdit, row, 1, 1, 2);
-
-    mainLayout->addWidget(waitResponseLabel, ++row, 0);
-    mainLayout->addWidget(waitResponseSpinBox, row, 1);
-
-    mainLayout->addWidget(serialPortLabel_motor, ++row, 0);
-    mainLayout->addWidget(serialPortComboBox_motor, row, 1);
-
-    mainLayout->addWidget(serialPortLabel_arduino, ++row, 0);
-    mainLayout->addWidget(serialPortComboBox_arduino, row, 1);
-
-    mainLayout->addWidget(trafficLabel, ++row, 0, 1, 4);
-    mainLayout->addWidget(statusLabel, ++row, 0, 1, 5);
-
+    mainLayout->addWidget(requestLabel, 0, 0);
+    mainLayout->addWidget(requestLineEdit, 0, 1, 1, 2);
+    mainLayout->addWidget(serialPortLabel, 2, 0);
+    mainLayout->addWidget(serialPortComboBox, 2, 1);
+    mainLayout->addWidget(waitResponseLabel, 1, 0);
+    mainLayout->addWidget(waitResponseSpinBox, 1, 1);
     mainLayout->addWidget(runButton, 0, 3, 2, 1);
-
+    mainLayout->addWidget(trafficLabel, 3, 0, 1, 4);
+    mainLayout->addWidget(statusLabel, 4, 0, 1, 5);
     setLayout(mainLayout);
 
-    setWindowTitle(tr("Flutronic"));
+    setWindowTitle(tr("Blocking Master"));
     requestLineEdit->setFocus();
 
     connect(runButton, SIGNAL(clicked()),
@@ -112,10 +96,9 @@ Dialog::Dialog(QWidget *parent)
 void Dialog::transaction()
 {
 //    setControlsEnabled(false);
-    statusLabel->setText(tr("Status: Running, connected to ports %1 and %2.")
-                         .arg(serialPortComboBox_motor->currentText(), serialPortComboBox_arduino->currentText()));
-    thread.transaction(serialPortComboBox_motor->currentText(),
-                       serialPortComboBox_arduino->currentText(), // new MHX
+    statusLabel->setText(tr("Status: Running, connected to port %1.")
+                         .arg(serialPortComboBox->currentText()));
+    thread.transaction(serialPortComboBox->currentText(),
                        waitResponseSpinBox->value(),
                        requestLineEdit->text());
 }
@@ -156,8 +139,7 @@ void Dialog::processTimeout(const QString &s)
 void Dialog::setControlsEnabled(bool enable)
 {
     runButton->setEnabled(enable);
-    serialPortComboBox_motor->setEnabled(enable);
-    serialPortComboBox_arduino->setEnabled(enable);
+    serialPortComboBox->setEnabled(enable);
     waitResponseSpinBox->setEnabled(enable);
     requestLineEdit->setEnabled(enable);
 }
