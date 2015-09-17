@@ -56,6 +56,7 @@ public:
     void homing();
     void prepare();
     void move();
+    void slow();
     void goHome();
     void read();
     void voltage(int volt);
@@ -68,6 +69,7 @@ public:
     QByteArray readSequence();
     QByteArray voltSequence(int volt);
     QByteArray gotoSequence(int position);
+    QByteArray gotoslowSequence(int position, int maxVelocity, int maxAcc, int maxDec);
 
 signals:
     void response(const QString &s, const QString &t);

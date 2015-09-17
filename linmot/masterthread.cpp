@@ -138,6 +138,9 @@ void MasterThread::run()
         else if(this->request == new QString("move")){
             move();
         }
+        else if(this->request == new QString("slow")){
+            slow();
+        }
         else if(this->request == new QString("read")){
             read();
         }
@@ -198,6 +201,10 @@ void MasterThread::move(){
     send(MasterThread::gotoSequence(0));
     QTest::qWait(500);
     send(MasterThread::gotoSequence(100000));
+}
+
+void MasterThread::slow(){
+    send(MasterThread::gotoslowSequence(500000, 20000, 20000, 20000));
 }
 
 void MasterThread::goHome(){
@@ -267,6 +274,33 @@ QByteArray MasterThread::gotoSequence(int position){
                               byteDec[2],
                               byteDec[1],
                               byteDec[0],
+                              0x04};
+    return QByteArray(byteArray, sizeof(byteArray));
+}
+
+QByteArray MasterThread::gotoslowSequence(int position, int maxVelocity, int maxAcc, int maxDec){
+    char* byteDec = byteDecomposition(position);
+    char* byteDecVel = byteDecomposition(maxVelocity);
+    char* byteDecAcc = byteDecomposition(maxAcc);
+    char* byteDecDec = byteDecomposition(maxDec);
+    const char byteArray[] = {0x01, 0x3F, 0x15, 0x02, 0x00, 0x02,
+                              getCount(), 0x01,
+                              byteDec[3],
+                              byteDec[2],
+                              byteDec[1],
+                              byteDec[0],
+                              byteDecVel[3],
+                              byteDecVel[2],
+                              byteDecVel[1],
+                              byteDecVel[0],
+                              byteDecAcc[3],
+                              byteDecAcc[2],
+                              byteDecAcc[1],
+                              byteDecAcc[0],
+                              byteDecDec[3],
+                              byteDecDec[2],
+                              byteDecDec[1],
+                              byteDecDec[0],
                               0x04};
     return QByteArray(byteArray, sizeof(byteArray));
 }
