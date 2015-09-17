@@ -107,11 +107,20 @@ void MasterThread::run()
                 return;
             }
 
-            serial.setStopBits(QSerialPort::OneStop);
-            serial.setParity(QSerialPort::NoParity);
-            serial.setFlowControl(QSerialPort::NoFlowControl);
-            serial.setDataBits(QSerialPort::Data8);
-            serial.setBaudRate(QSerialPort::Baud57600);
+            if(this->request == new QString("volt")){
+                serial.setStopBits(QSerialPort::OneStop);
+                serial.setParity(QSerialPort::NoParity);
+                serial.setFlowControl(QSerialPort::NoFlowControl);
+                serial.setDataBits(QSerialPort::Data8);
+                serial.setBaudRate(QSerialPort::Baud9600);
+            }
+            else {
+                serial.setStopBits(QSerialPort::OneStop);
+                serial.setParity(QSerialPort::NoParity);
+                serial.setFlowControl(QSerialPort::NoFlowControl);
+                serial.setDataBits(QSerialPort::Data8);
+                serial.setBaudRate(QSerialPort::Baud57600);
+            }
         }
 
         if(this->request == new QString("start")){
@@ -134,6 +143,9 @@ void MasterThread::run()
         }
         else if(this->request == new QString("gohome")){
             goHome();
+        }
+        else if(this->request == new QString("volt")){
+            voltage(1);
         }
 
 
@@ -196,6 +208,10 @@ void MasterThread::read(){
     send(MasterThread::readSequence(), true);
 }
 
+void MasterThread::voltage(int volt){
+    send(MasterThread::voltSequence(volt));
+}
+
 char MasterThread::getCount(){
     count += 1;
     if(count == 16){
@@ -234,6 +250,11 @@ QByteArray MasterThread::homeSequence(){
 
 QByteArray MasterThread::readSequence(){
     const char byteArray[] = {0x01, 0x3F, 0x03, 0x02, 0x01, 0x00, 0x04};
+    return QByteArray(byteArray, sizeof(byteArray));
+}
+
+QByteArray MasterThread::voltSequence(int volt){
+    const char byteArray[] = {volt + 48};
     return QByteArray(byteArray, sizeof(byteArray));
 }
 

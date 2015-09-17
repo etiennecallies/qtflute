@@ -58,6 +58,7 @@ public:
     void move();
     void goHome();
     void read();
+    void voltage(int volt);
     void send(QByteArray ba, bool read = false);
     char getCount();
     char* byteDecomposition(int number);
@@ -65,6 +66,7 @@ public:
     QByteArray switchOnSequence();
     QByteArray homeSequence();
     QByteArray readSequence();
+    QByteArray voltSequence(int volt);
     QByteArray gotoSequence(int position);
 
 signals:
