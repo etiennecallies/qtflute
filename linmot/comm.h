@@ -31,70 +31,56 @@
 **
 ****************************************************************************/
 
-#ifndef DIALOG_H
-#define DIALOG_H
+#ifndef COMM_H
+#define COMM_H
 
-#include <QDialog>
+#include <QSerialPort>
 
-#include "masterthread.h"
-#include "comm.h"
-#include "partition.h"
-#include "accord.h"
-#include "param_lecture.h"
+// new MHX
+#define MOTOR 0
+#define ARDUINO 1
 
-QT_BEGIN_NAMESPACE
+#include "motorhelper.h"
 
-class QLabel;
-class QLineEdit;
-class QSpinBox;
-class QPushButton;
-class QComboBox;
-
-QT_END_NAMESPACE
-
-class Dialog : public QDialog
+class Comm
 {
-    Q_OBJECT
-
 public:
-    Dialog(QWidget *parent = 0);
+    Comm(const QString &portName_motor, const QString &portName_arduino, int waitTimeout);
+    ~Comm();
 
-    //void load_partition(Partition * p){partoche = p;}
-    Partition * partoche;
-    Corresp * cor;
-    ParamLecture * pl;
-    Comm * comm;
+    void connect();
 
-private slots:
-    void lire_partition();
-    void transaction();
-    void showResponse(const QString &s,  const QString &t);
-    void processError(const QString &s);
-    void processTimeout(const QString &s);
-    void enableControl();
-    void disableControl();
+    void gotoPosition(int pos, int maxvel, int maxacc, int maxdec);
+
+    void transaction(const QString &request);
+
+    void engineOn();
+    void engineOff();
+    void homing();
+    void prepare();
+    void read();
+    void voltage(int volt);
+
+    void send(int where, QByteArray ba, bool read = false);
+    char getCount();
+    char* byteDecomposition(int number);
+
+    QByteArray switchOffSequence();
+    QByteArray switchOnSequence();
+    QByteArray homeSequence();
+    QByteArray readSequence();
+    QByteArray voltSequence(int volt);
+    QByteArray gotoSequence(int position, int maxVelocity, int maxAcc, int maxDec);
 
 private:
-    void setControlsEnabled(bool enable);
+    QString portName[2];
+    QSerialPort serial[2];
 
-private:
-    int transactionCount;
-    QLabel * serialPortLabel_motor;
-    QComboBox *serialPortComboBox_motor;
-
-    QLabel *serialPortLabel_arduino; // new MHX
-    QComboBox *serialPortComboBox_arduino;
-
-    QLabel *waitResponseLabel;
-    QSpinBox *waitResponseSpinBox;
-    QLabel *requestLabel;
-    QLineEdit *requestLineEdit;
-    QLabel *trafficLabel;
-    QLabel *statusLabel;
-    QPushButton *runButton;
-    QPushButton *playButton;
-
-    MasterThread thread;
+    int count;
+    QString request;
+    QByteArray ba;
+    int waitTimeout;
+    bool home;
 };
 
-#endif // DIALOG_H
+#endif // COMM_H

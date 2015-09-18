@@ -33,7 +33,9 @@ int main()
     myFile.open("C:\\Users\\etienne\\Documents\\Mines\\Mecatronique\\output.txt");
 
 
-    FILE * infile = fopen("C:\\Users\\etienne\\Documents\\Mines\\Mecatronique\\sine.wav","rb");     // Open wave file in read mode
+
+    FILE * infile = fopen("C:\\Users\\etienne\\Documents\\out3.wav","rb");     // Open wave file in read mode
+//    FILE * infile = fopen("C:\\Users\\etienne\\Documents\\Mines\\Mecatronique\\sine.wav","rb");     // Open wave file in read mode
 //    FILE * outfile = fopen("C:\Users\etienne\Documents\Mines\Mecatronique\output.txt","wb");      // Create output ( wave format) file in write mode;
 
     int BUFSIZE = 256;                  // BUFSIZE can be changed according to the frame size required (eg:512)

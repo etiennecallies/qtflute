@@ -35,10 +35,41 @@
 
 #include "dialog.h"
 
+#include "accord.h"
+#include "partition.h"
+#include "param_lecture.h"
+
+#include "comm.h"
+
+#define LONG_TOTALE 170
+
 int main(int argc, char *argv[])
 {
+    // accordage virtuel
+    Corresp c_test;
+    for(int i=0; i<7*NBR_OCTAVE; i++)
+        c_test[i] = (i+1)*LONG_TOTALE/(7*NBR_OCTAVE); // en mm
+
+    ParamLecture pl; // défaut
+        pl.maxVit = 400; // en mm/s
+        pl.maxAcc = 600; // en mm/s²
+        pl.maxDec = pl.maxAcc;
+
+    Partition p("C:\\Users\\etienne\\Documents\\Mines\\Mecatronique\\qtflute\\linmot\\1oct.abc");
+        p.base_temps = 500; // en ms
+
+    qDebug() << "Nbr de notes = " << p.notes.size();
+
+    Comm co("COM9", "COM12", 1000);
+
     QApplication app(argc, argv);
     Dialog dialog;
+
+    dialog.comm = &co;
+    dialog.partoche = &p;
+    dialog.pl = &pl;
+    dialog.cor = &c_test;
+
     dialog.show();
     return app.exec();
 }

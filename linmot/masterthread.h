@@ -44,6 +44,8 @@
 #define MOTOR 0
 #define ARDUINO 1
 
+#include "motorhelper.h"
+
 //! [0]
 class MasterThread : public QThread
 {
@@ -52,6 +54,8 @@ class MasterThread : public QThread
 public:
     MasterThread(QObject *parent = 0);
     ~MasterThread();
+
+    void gotoPosition(int pos, int maxvel, int maxacc, int maxdec);
 
     void transaction(const QString &portName_motor, const QString &portName_arduino, int waitTimeout, const QString &request);
     void run();
@@ -83,10 +87,10 @@ signals:
     void enable();
     void disable();
 
-private:
+public:
     QString portName[2];
     QSerialPort serial[2];
-
+private:
     int count;
     QString request;
     QByteArray ba;

@@ -32,7 +32,6 @@
 ****************************************************************************/
 
 #include "masterthread.h"
-#include "comm.h"
 
 #include <QtSerialPort/QSerialPort>
 

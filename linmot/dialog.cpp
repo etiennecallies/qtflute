@@ -57,7 +57,10 @@ Dialog::Dialog(QWidget *parent)
     , requestLineEdit(new QLineEdit(tr("start")))
     , trafficLabel(new QLabel(tr("No traffic.")))
     , statusLabel(new QLabel(tr("Status: Not running.")))
-    , runButton(new QPushButton(tr("Start")))
+    , runButton(new QPushButton(tr("Exec")))
+    , playButton(new QPushButton(tr("Play")))
+
+    , partoche(NULL), cor(NULL), pl(NULL), comm(NULL)
 {
     foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
     {
@@ -89,14 +92,19 @@ Dialog::Dialog(QWidget *parent)
     mainLayout->addWidget(statusLabel, ++row, 0, 1, 5);
 
     mainLayout->addWidget(runButton, 0, 3, 2, 1);
+    mainLayout->addWidget(playButton, 1, 3, 2, 1);
 
     setLayout(mainLayout);
 
     setWindowTitle(tr("Flutronic"));
     requestLineEdit->setFocus();
 
+    connect(playButton, SIGNAL(clicked()),
+            this, SLOT(lire_partition()));
+
     connect(runButton, SIGNAL(clicked()),
             this, SLOT(transaction()));
+
     connect(&thread, SIGNAL(response(QString, QString)),
             this, SLOT(showResponse(QString, QString)));
     connect(&thread, SIGNAL(error(QString)),
@@ -118,6 +126,19 @@ void Dialog::transaction()
                        serialPortComboBox_arduino->currentText(), // new MHX
                        waitResponseSpinBox->value(),
                        requestLineEdit->text());
+}
+
+void Dialog::lire_partition()
+{
+    if(partoche != NULL && cor != NULL && pl != NULL && comm != NULL){
+
+        thread.serial[0].close();
+        thread.serial[1].close();
+
+        comm->connect(); // MHX: temp debug masterthread....
+        partoche->lire(*comm, *cor, *pl);
+
+    }
 }
 
 void Dialog::enableControl()
@@ -156,6 +177,7 @@ void Dialog::processTimeout(const QString &s)
 void Dialog::setControlsEnabled(bool enable)
 {
     runButton->setEnabled(enable);
+    playButton->setEnabled(enable);
     serialPortComboBox_motor->setEnabled(enable);
     serialPortComboBox_arduino->setEnabled(enable);
     waitResponseSpinBox->setEnabled(enable);
