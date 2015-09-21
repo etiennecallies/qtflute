@@ -46,17 +46,29 @@
 int main(int argc, char *argv[])
 {
     // accordage virtuel
-    Corresp c_test;
+    /*Corresp c_test;
     for(int i=0; i<7*NBR_OCTAVE; i++)
-        c_test[i] = (i+1)*LONG_TOTALE/(7*NBR_OCTAVE); // en mm
+        c_test[i] = (i+1)*LONG_TOTALE/(7*NBR_OCTAVE); // en mm */
+
+    Corresp cm; // accordage manuel
+    //f = 165;
+    //g = 135;
+    cm[0] = 109;
+    cm[1] = 85;
+    cm[2] = 75;
+    cm[3] = 55; //.5;
+    cm[4] = 37;
+    cm[5] = 30;
+    cm[6] = 10;
+
 
     ParamLecture pl; // défaut
-        pl.maxVit = 400; // en mm/s
-        pl.maxAcc = 600; // en mm/s²
+        pl.maxVit = 800; // en mm/s
+        pl.maxAcc = 8000; // en mm/s²
         pl.maxDec = pl.maxAcc;
 
     Partition p("C:\\Users\\etienne\\Documents\\Mines\\Mecatronique\\qtflute\\linmot\\1oct.abc");
-        p.base_temps = 500; // en ms
+        p.base_temps = 250; // en ms
 
     qDebug() << "Nbr de notes = " << p.notes.size();
 
@@ -68,7 +80,7 @@ int main(int argc, char *argv[])
     dialog.comm = &co;
     dialog.partoche = &p;
     dialog.pl = &pl;
-    dialog.cor = &c_test;
+    dialog.cor = &cm;
 
     dialog.show();
     return app.exec();

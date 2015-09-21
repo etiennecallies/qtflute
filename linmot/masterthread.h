@@ -65,6 +65,7 @@ public:
     void prepare();
     void move();
     void slow();
+    void goslow(int pos);
     void goHome();
     void read();
     void voltage(int volt);

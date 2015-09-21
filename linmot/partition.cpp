@@ -122,7 +122,7 @@ void Partition::lire(Comm & t, const Corresp & c, const ParamLecture & pl, size_
         }
         // silence
         else{
-            t.voltage(0);
+            t.voltage(ARDUINO_SILENCE);
             qDebug() << "t.voltage(0);";
         }
 
@@ -131,7 +131,8 @@ void Partition::lire(Comm & t, const Corresp & c, const ParamLecture & pl, size_
         QTest::qWait(base_temps * n->duree);
 
         if(!n->liee && h != -1){
-            t.voltage(0);
+            t.voltage(ARDUINO_SILENCE);
+            QTest::qWait(50);
             qDebug() << "t.voltage(0);";
         }
 

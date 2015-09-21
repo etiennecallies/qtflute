@@ -166,6 +166,9 @@ void MasterThread::run()
         else if(this->request == new QString("volt0")){
             voltage(0);
         }
+        else {
+            goslow(this->request.toInt());
+        }
 
         //! [9]  //! [13]
         mutex.lock();
@@ -244,6 +247,12 @@ void MasterThread::gotoPosition(int pos, int maxvel, int maxacc, int maxdec){
 void MasterThread::slow(){
     emit this->disable();
     send(MOTOR, MasterThread::gotoSlowSequence(500000, 20000, 20000, 20000));
+    emit this->enable();
+}
+
+void MasterThread::goslow(int pos){
+    emit this->disable();
+    send(MOTOR, MasterThread::gotoSlowSequence(pos, 20000, 20000, 20000));
     emit this->enable();
 }
 
