@@ -36,6 +36,7 @@ public:
     //void lire(MasterThread & t, const Corresp & c, const ParamLecture & pl, size_t n1 = 0, size_t n2 = -1);
     void lire(Comm & t, const Corresp & c, const ParamLecture & pl, size_t n1 = 0, size_t n2 = -1);
 
+    int getHauteur(char letter, bool diese, bool bemol);
     // idem en temps de mesure
     //void lire(Corresp c, size_t t1 = 0, size_t t2 = -1);
 

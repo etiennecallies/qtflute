@@ -53,22 +53,56 @@ int main(int argc, char *argv[])
     Corresp cm; // accordage manuel
     //f = 165;
     //g = 135;
-    cm[0] = 109;
-    cm[1] = 85;
-    cm[2] = 75;
-    cm[3] = 55; //.5;
-    cm[4] = 37;
-    cm[5] = 30;
-    cm[6] = 10;
+//    cm[0] = 109;
+//    cm[1] = 85;
+//    cm[2] = 75;
+//    cm[3] = 55; //.5;
+//    cm[4] = 37;
+//    cm[5] = 30;
+//    cm[6] = 10;
+
+    //0: F
+    //1: F# - Gb
+    //2: G
+    //3: G# - Ab
+    //4: A
+    //5: A# - Bb
+    //6: B
+    //7: c
+    //8: c# - db
+    //9: d
+    //10: d# - eb
+    //11: e
+    //12: f
+    //13: f# - gb
+    //14: g
+    //15: g#
+    cm[0] = 1590; //Il s'agit de dixièmes de mm
+    cm[1] = 1430;
+    cm[2] = 1290;
+    cm[3] = 1150;
+    cm[4] = 1030;
+    cm[5] = 920;
+    cm[6] = 820;
+    cm[7] = 720;
+    cm[8] = 610;
+    cm[9] = 525;
+    cm[10] = 440;
+    cm[11] = 370;
+    cm[12] = 320;
+    cm[13] = 290;
+    cm[14] = 220;
+    cm[15] = 160;
+
 
 
     ParamLecture pl; // défaut
-        pl.maxVit = 800; // en mm/s
+        pl.maxVit = 400; // en mm/s
         pl.maxAcc = 8000; // en mm/s²
         pl.maxDec = pl.maxAcc;
 
-    Partition p("C:\\Users\\etienne\\Documents\\Mines\\Mecatronique\\qtflute\\linmot\\1oct.abc");
-        p.base_temps = 250; // en ms
+    Partition p("C:\\Users\\etienne\\Documents\\Mines\\Mecatronique\\qtflute\\linmot\\part1.abc");
+        p.base_temps = 200; // en ms
 
     qDebug() << "Nbr de notes = " << p.notes.size();
 

@@ -17,6 +17,8 @@ Partition::Partition(string fname) :
     int h;
     int d;
     bool l;
+    bool diese;
+    bool bemol;
 
     while(f.good())
     {
@@ -47,7 +49,18 @@ Partition::Partition(string fname) :
 
             for(size_t i = 0; i < n; i++)
             {
+                diese = bemol = false;
                 c = line[i];
+                if(c == '^'){
+                    diese = true;
+                    i = i+1;
+                    c = line[i];
+                }
+                if(c == '_'){
+                    bemol = true;
+                    i = i+1;
+                    c = line[i];
+                }
                 cs = line[i+1]; // existe même en i=n-1
 
                 // défauts
@@ -55,16 +68,26 @@ Partition::Partition(string fname) :
                 d = 1;
                 l = false;
 
-                // octave de base
-                if(c >= 'A' && c <= 'G')
-                    h = c - 'A'; // de manière à ce que 'A' vaille 0
-                // octave sup
-                else if(c >= 'a' && c <= 'g')
-                    h = c - 'a' + 7; // de manière à ce que 'a' suive le numéro de 'G'
-                // silences
+                if((c >= 'A' && c <= 'G') || (c >= 'a' && c <= 'g')){
+                    h = getHauteur(c, diese, bemol);
+                }
+//                // octave de base
+//                if(c >= 'A' && c <= 'G')
+//                    h = c - 'A'; // de manière à ce que 'A' vaille 0
+//                // octave sup
+//                else if(c >= 'a' && c <= 'g')
+//                    h = c - 'a' + 7; // de manière à ce que 'a' suive le numéro de 'G'
+//                // silences
                 else if(c == 'z')
                     h = -1;
                 // le reste est du déchet
+
+                if(bemol){
+                    h = h - 0.5;
+                }
+                if(diese){
+                    h = h + 0.5;
+                }
 
 
                 if(h >= -1)
@@ -95,6 +118,97 @@ Partition::Partition(string fname) :
     #ifdef DEBUG
         cout << "=== Partoche ===" << endl << os.str() << endl;
     #endif
+}
+
+int Partition::getHauteur(char letter, bool diese, bool bemol){
+    //0: F
+    //1: F# - Gb
+    //2: G
+    //3: G# - Ab
+    //4: A
+    //5: A# - Bb
+    //6: B
+    //7: c
+    //8: c# - db
+    //9: d
+    //10: d# - eb
+    //11: e
+    //12: f
+    //13: f# - gb
+    //14: g
+    //15: g#
+
+    switch(letter){
+    case 'F':
+        if(diese){
+            return 1;
+        }
+        return 0;
+        break;
+
+    case 'G':
+        if(bemol){
+            return 1;
+        }
+        if(diese){
+            return 3;
+        }
+        return 2;
+        break;
+    case 'A':
+        if(bemol){
+            return 3;
+        }
+        if(diese){
+            return 5;
+        }
+        return 4;
+        break;
+    case 'B':
+        if(bemol){
+            return 5;
+        }
+        return 6;
+        break;
+    case 'c':
+        if(diese){
+            return 8;
+        }
+        return 7;
+        break;
+    case 'd':
+        if(bemol){
+            return 8;
+        }
+        if(diese){
+            return 10;
+        }
+        return 9;
+        break;
+    case 'e':
+        if(bemol){
+            return 10;
+        }
+        return 11;
+        break;
+    case 'f':
+        if(diese){
+            return 13;
+        }
+        return 12;
+        break;
+    case 'g':
+        if(bemol){
+            return 13;
+        }
+        if(diese){
+            return 15;
+        }
+        return 14;
+        break;
+
+    }
+    return -1;
 }
 
 
