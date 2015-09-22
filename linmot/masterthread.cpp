@@ -32,6 +32,7 @@
 ****************************************************************************/
 
 #include "masterthread.h"
+#include "partition.h"
 #include "comm.h"
 
 #include <QtSerialPort/QSerialPort>
@@ -131,12 +132,12 @@ void MasterThread::run()
         }
 
         if(this->request == new QString("start")){
-
              engineOn();
+             voltage(ARDUINO_OFF);
         }
         else if(this->request == new QString("stop")){
             engineOff();
-            voltage(0);
+            voltage(ARDUINO_OFF);
         }
         else if(this->request == new QString("home")){
             homing();
@@ -167,6 +168,7 @@ void MasterThread::run()
             voltage(0);
         }
         else {
+//            voltage(this->request.toInt());
             goslow(this->request.toInt());
         }
 

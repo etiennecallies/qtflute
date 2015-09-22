@@ -229,7 +229,13 @@ void Partition::lire(Comm & t, const Corresp & c, const ParamLecture & pl, size_
         // note
         if(h >= 0)
         {
-            t.voltage(pl.intensite);
+            if(h >= 4){
+                //Si la note est A ou supérieur
+                t.voltage(ARDUINO_AIGU);
+            }
+            else {
+                t.voltage(ARDUINO_GRAVE);
+            }
             t.gotoPosition(c[h], pl.maxVit, pl.maxAcc, pl.maxDec);
             qDebug() << "t.voltage+;";
             qDebug() << "t.gotoPosition=" << c[h];
