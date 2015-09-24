@@ -7,18 +7,15 @@ Partition::Partition(string fname) :
     derniere_note(0), base_temps(1000)
 {
     ifstream f(fname);
-    string line;
     size_t n; // nbr de char par ligne
-    char c, cs;
 
     ostringstream os("");
 
     // propriétés des notes
     int h;
     int d;
-    bool l;
-    bool diese;
-    bool bemol;
+    liee = false;
+
 
     while(f.good())
     {
@@ -47,70 +44,114 @@ Partition::Partition(string fname) :
             // on rajoute deux caractères déchets pour finir la ligne.
             line += ';';  line += ';';
 
-            for(size_t i = 0; i < n; i++)
+            i = 0;
+            while(i < n)
             {
-                diese = bemol = false;
                 c = line[i];
-                if(c == '^'){
-                    diese = true;
-                    i = i+1;
-                    c = line[i];
+                if(c == '(' && line[i+1] == '3'){
+                    i += 2;
+                    h = parseNote();
+                    this->notes.push_back(Note(h, -3, liee));
+                    os << "Note = " << h << " [" << -3 << "] " << liee << endl;
+                    liee = false;
                 }
-                if(c == '_'){
-                    bemol = true;
-                    i = i+1;
-                    c = line[i];
+                else if(c == '('){
+                    liee = true;
+                    i += 1;
                 }
-                cs = line[i+1]; // existe même en i=n-1
+                else if(c == ')'){
+                    liee = false;
+                    i += 1;
+                }
+                else {
+                    h = parseNote();
+                    if(h >= 0){
+                        c = line[i];
+                        d = 1;
+                        if(c >= '0' && c <= '9')
+                        {
+                            d = c - '0'; // durée note
+    //                        c = line[i+2]; // caractère encore suivant ; existe même en i=n-1
+    //                        l = (c >= 'A' && c <= 'G') || (c >= 'a' && c <= 'g');
+                            i++; // on évite le caractère d'après qui est la durée de cette note
+
+                        }
+                        else if(c == '/'){
+                            d = -2;
+                            i++; // on évite le caractère d'après qui est la durée de cette note
+                        }
+                        this->notes.push_back(Note(h, d, liee));
+                        os << "Note = " << h << " [" << d << "] " << liee << endl;
+                    }
+                    liee = false;
+                }
+
+
+//                diese = bemol = false;
+//                c = line[i];
+//                if(c == '^'){
+//                    diese = true;
+//                    i = i+1;
+//                    c = line[i];
+//                }
+//                if(c == '_'){
+//                    bemol = true;
+//                    i = i+1;
+//                    c = line[i];
+//                }
+//                cs = line[i+1]; // existe même en i=n-1
 
                 // défauts
-                h = -2;
-                d = 1;
-                l = false;
+//                d = 1;
+//                l = false;
 
-                if((c >= 'A' && c <= 'G') || (c >= 'a' && c <= 'g')){
-                    h = getHauteur(c, diese, bemol);
-                }
+//                if((c >= 'A' && c <= 'G') || (c >= 'a' && c <= 'g')){
+//                    h = getHauteur(c, diese, bemol);
+//                }
+
+//                h = parseNote();
+
 //                // octave de base
 //                if(c >= 'A' && c <= 'G')
 //                    h = c - 'A'; // de manière à ce que 'A' vaille 0
 //                // octave sup
 //                else if(c >= 'a' && c <= 'g')
 //                    h = c - 'a' + 7; // de manière à ce que 'a' suive le numéro de 'G'
-//                // silences
-                else if(c == 'z')
-                    h = -1;
+
                 // le reste est du déchet
 
-                if(bemol){
-                    h = h - 0.5;
-                }
-                if(diese){
-                    h = h + 0.5;
-                }
+//                if(bemol){
+//                    h = h - 0.5;
+//                }
+//                if(diese){
+//                    h = h + 0.5;
+//                }
 
 
-                if(h >= -1)
-                {
-                    // étude d'après pour les notes et silences
+//                if(h >= -1)
+//                {
+//                    // étude d'après pour les notes et silences
 
-                        // notes liées
-                        if((cs >= 'A' && cs <= 'G') || (cs >= 'a' && cs <= 'g'))
-                            l = true;
-                        // durées
-                        else if(cs >= '0' && cs <= '9')
-                        {
-                            d = cs - '0'; // durée note
-                            cs = line[i+2]; // caractère encore suivant ; existe même en i=n-1
-                            l = (cs >= 'A' && cs <= 'G') || (cs >= 'a' && cs <= 'g');
-                            i++; // on évite le caractère d'après qui est la durée de cette note
-                        }
+//                        // notes liées
+//                        if((cs >= 'A' && cs <= 'G') || (cs >= 'a' && cs <= 'g'))
+//                            l = true;
+//                        // durées
+//                        else if(cs >= '0' && cs <= '9')
+//                        {
+//                            d = cs - '0'; // durée note
+//                            cs = line[i+2]; // caractère encore suivant ; existe même en i=n-1
+//                            l = (cs >= 'A' && cs <= 'G') || (cs >= 'a' && cs <= 'g');
+//                            i++; // on évite le caractère d'après qui est la durée de cette note
+//                        }
+//                        else if(cs == '/'){
+//                            d = -2;
+//                        }
 
-                   // enregistrement de la note
-                   this->notes.push_back(Note(h, d, l));
+//                   // enregistrement de la note
+//                   this->notes.push_back(Note(h, d, l));
 
-                   os << "Note = " << h << " [" << d << "] " << l << endl;
-                }
+//                   os << "Note = " << h << " [" << d << "] " << l << endl;
+//                }
             }
         }
     }
@@ -118,6 +159,35 @@ Partition::Partition(string fname) :
     #ifdef DEBUG
         cout << "=== Partoche ===" << endl << os.str() << endl;
     #endif
+}
+
+int Partition::parseNote(){
+    int h = -2;
+    bool diese;
+    bool bemol;
+    diese = bemol = false;
+    c = line[i];
+    if(c == '^'){
+        diese = true;
+        i = i+1;
+        c = line[i];
+    }
+    if(c == '_'){
+        bemol = true;
+        i = i+1;
+        c = line[i];
+    }
+
+    if((c >= 'A' && c <= 'G') || (c >= 'a' && c <= 'g')){
+        h = getHauteur(c, diese, bemol);
+    }
+    // silences
+    else if(c == 'z')
+        h = -1;
+
+    i = i + 1;
+
+    return h;
 }
 
 int Partition::getHauteur(char letter, bool diese, bool bemol){
@@ -246,15 +316,27 @@ void Partition::lire(Comm & t, const Corresp & c, const ParamLecture & pl, size_
             qDebug() << "t.voltage(0);";
         }
 
+        int transition = 50;
         // microsecondes
         //QThread::msleep(base_temps * n->duree); //t.
-        QTest::qWait(base_temps * n->duree);
+        int towait;
+        if(n->duree == -2){
+            towait = base_temps / 2;
+        }
+        if(n->duree == -3){
+            towait = base_temps / 3;
+        }
+        else {
+            towait = base_temps * n->duree;
+        }
+        QTest::qWait(towait - transition);
 
         if(!n->liee && h != -1){
             t.voltage(ARDUINO_SILENCE);
-            QTest::qWait(50);
             qDebug() << "t.voltage(0);";
         }
+        //Transition
+        QTest::qWait(transition);
 
         derniere_note = i;
     }

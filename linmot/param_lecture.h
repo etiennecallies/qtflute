@@ -3,8 +3,8 @@
 
 #define ARDUINO_OFF 0
 #define ARDUINO_SILENCE 1
-#define ARDUINO_GRAVE 2
-#define ARDUINO_AIGU 2
+#define ARDUINO_GRAVE 6
+#define ARDUINO_AIGU 6
 
 struct ParamLecture
 {

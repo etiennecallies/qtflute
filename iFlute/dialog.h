@@ -31,91 +31,79 @@
 **
 ****************************************************************************/
 
-#include <QApplication>
+#ifndef DIALOG_H
+#define DIALOG_H
 
-#include "dialog.h"
+#include <QDialog>
 
-#include "accord.h"
+#include "masterthread.h"
+#include "comm.h"
 #include "partition.h"
+#include "Accordeur/accordage.h"
+#include "Accordeur/micro.h"
 #include "param_lecture.h"
 
-#include "comm.h"
+QT_BEGIN_NAMESPACE
 
-#define LONG_TOTALE 170
+class QLabel;
+class QLineEdit;
+class QSpinBox;
+class QPushButton;
+class QComboBox;
 
-int main(int argc, char *argv[])
+QT_END_NAMESPACE
+
+class Dialog : public QDialog
 {
-    // accordage virtuel
-    /*Corresp c_test;
-    for(int i=0; i<7*NBR_OCTAVE; i++)
-        c_test[i] = (i+1)*LONG_TOTALE/(7*NBR_OCTAVE); // en mm */
+    Q_OBJECT
 
-    Corresp cm; // accordage manuel
-    //f = 165;
-    //g = 135;
-//    cm[0] = 109;
-//    cm[1] = 85;
-//    cm[2] = 75;
-//    cm[3] = 55; //.5;
-//    cm[4] = 37;
-//    cm[5] = 30;
-//    cm[6] = 10;
+public:
+    Dialog(Comm & comm, Partition & parti, ParamLecture & pl,  Accordage & ac, ParamAccordage & pac, AnalyseMicro & mic,  QWidget *parent = 0);
 
-    //0: F
-    //1: F# - Gb
-    //2: G
-    //3: G# - Ab
-    //4: A
-    //5: A# - Bb
-    //6: B
-    //7: c
-    //8: c# - db
-    //9: d
-    //10: d# - eb
-    //11: e
-    //12: f
-    //13: f# - gb
-    //14: g
-    //15: g#
-    cm[0] = 1590; //Il s'agit de dixièmes de mm //F
-    cm[1] = 1450; //F#
-    cm[2] = 1310; //G
-    cm[3] = 1170; //G#
-    cm[4] = 1060; //
-    cm[5] = 940;
-    cm[6] = 830;
-    cm[7] = 720;
-    cm[8] = 630;
-    cm[9] = 535;
-    cm[10] = 440;
-    cm[11] = 350;
-    cm[12] = 240;
-    cm[13] = 100;
-    cm[14] = 50;
-    cm[15] = 20;
+    // éléments clés
+    Comm & comm;
+    Partition & partoche;
+    ParamLecture & pl;
+    Accordage & ac;
+    ParamAccordage & pac;
+    AnalyseMicro & mic;
 
+    void prise_controle();
+    void importer_accordage();
 
+private slots:
+    void lire_partition();
+    void accorder_auto();
 
-    ParamLecture pl; // défaut
-        pl.maxVit = 800; // en mm/s
-        pl.maxAcc = 10000; // en mm/s²
-        pl.maxDec = pl.maxAcc;
+    void transaction();
+    void showResponse(const QString &s,  const QString &t);
+    void processError(const QString &s);
+    void processTimeout(const QString &s);
+    void enableControl();
+    void disableControl();
 
-    Partition p("C:\\Users\\etienne\\Documents\\Mines\\Mecatronique\\qtflute\\linmot\\electro.abc");
-        p.base_temps = 6 * 70; // en ms
+private:
+    void setControlsEnabled(bool enable);
 
-    qDebug() << "Nbr de notes = " << p.notes.size();
+private:
+    int transactionCount;
+    QLabel * serialPortLabel_motor;
+    QComboBox *serialPortComboBox_motor;
 
-    Comm co("COM13", "COM10", 1000);
+    QLabel *serialPortLabel_arduino; // new MHX
+    QComboBox *serialPortComboBox_arduino;
 
-    QApplication app(argc, argv);
-    Dialog dialog;
+    QLabel *waitResponseLabel;
+    QSpinBox *waitResponseSpinBox;
+    QLabel *requestLabel;
+    QLineEdit *requestLineEdit;
+    QLabel *trafficLabel;
+    QLabel *statusLabel;
+    QPushButton *runButton;
+    QPushButton *accordButton;
+    QPushButton *playButton;
 
-    dialog.comm = &co;
-    dialog.partoche = &p;
-    dialog.pl = &pl;
-    dialog.cor = &cm;
+    MasterThread thread;
+};
 
-    dialog.show();
-    return app.exec();
-}
+#endif // DIALOG_H
