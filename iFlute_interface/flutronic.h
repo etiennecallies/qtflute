@@ -40,6 +40,7 @@ private slots:
     void accorder_auto();
     void changer_params();
     void ouvrir_browser();
+    void open_harmony_assistant();
     void charger_partition();
 
     /*void showResponse(const QString &s,  const QString &t);

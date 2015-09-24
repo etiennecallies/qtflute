@@ -67,6 +67,9 @@ size_t Partition::charger_fichier(const string & fname)
                     //this->base_temps=;
                     break;
             }
+        else if(n>=2 && line[0] == ' ' && line[1] == ' '){
+            //Do nothing if line starts with at least two spaces
+        }
         else if(n > 0) // ligne non vide
         {
             // on rajoute deux caractères déchets pour finir la ligne.

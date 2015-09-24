@@ -83,7 +83,7 @@ void Comm::connect(const QString &portName_motor, const QString &portName_arduin
 
             if(i == ARDUINO){
                 serial[i].setDataTerminalReady(true);
-                serial[i].setBaudRate(QSerialPort::Baud9600);
+                serial[i].setBaudRate(QSerialPort::Baud115200);
             }
             else { // MOTOR
                 serial[i].setBaudRate(QSerialPort::Baud57600);

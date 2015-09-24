@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
         pl.maxAcc = 10000; // en mm/s²
         pl.maxDec = pl.maxAcc;
         pl.tempsBase = 300;
-        pl.fracTempsTransi = 0.5;
+        pl.fracTempsTransi = 0.2;
         pl.tempsMaxDepl = 40;
 
     ParamAccordage pac;

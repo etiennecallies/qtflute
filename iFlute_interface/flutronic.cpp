@@ -32,6 +32,8 @@
 ****************************************************************************/
 
 #include "flutronic.h"
+#include <QProcess>
+#include <iostream>
 
 QT_USE_NAMESPACE
 
@@ -67,13 +69,18 @@ Flutronic::Flutronic(ParamLecture & Tpl, ParamAccordage & Tpac, AnalyseMicro & T
             this, SLOT(lire_partition()));
     connect(ui->parti_parcourir, SIGNAL(clicked()),
             this, SLOT(ouvrir_browser()));
-    connect(ui->fich_partition, SIGNAL(textChanged(QString)),
+    connect(ui->fich_partition, SIGNAL(textChanged(QString)), //textChanged(QString)
             this, SLOT(charger_partition()));
 
     connect(ui->tpsBase, SIGNAL(valueChanged(int)),
             this, SLOT(changer_params()));
-    connect(ui->tpsTransi, SIGNAL(valueChanged(double)),
-            this, SLOT(changer_params()));
+    connect(ui->harmonyAssistant, SIGNAL(clicked()),
+            this, SLOT(open_harmony_assistant()));
+
+    // cas défaut
+    ui->playButton->setEnabled(false);
+    ui->fich_partition->setEnabled(false);
+    ui->parti_parcourir->setEnabled(false);
 
 /*
     connect(&comm, SIGNAL(enable()),
@@ -84,7 +91,7 @@ Flutronic::Flutronic(ParamLecture & Tpl, ParamAccordage & Tpac, AnalyseMicro & T
 
 void Flutronic::ouvrir_browser()
 {
-    QString fname = QFileDialog::getOpenFileName(this, "Fichier partition", "..", "*.abc");
+    QString fname = QFileDialog::getOpenFileName(this, "Choississez votre fichier partition", "../abc", "*.abc");
     ui->fich_partition->setText(fname);
 }
 
@@ -93,23 +100,30 @@ void Flutronic::connecter_comm()
     comm.connect(ui->port_moteur->currentText(), ui->port_arduino->currentText());
     comm.init();
     qDebug() << "Communications prêtes : " << comm.pret;
+
+    if(comm.pret){
+        ui->fich_partition->setEnabled(true);
+        ui->parti_parcourir->setEnabled(true);
+    }
 }
 
 void Flutronic::charger_partition()
 {
     QString fname = ui->fich_partition->text();
+    qDebug() << "charger parti";
     if(!fname.isEmpty()){
         partoche.charger_fichier(fname.toStdString());
 
-        if(comm.pret)
+        if(comm.pret) {
             partoche.precharger_premiere_note(comm,ac);
+            ui->playButton->setEnabled(true);
+        }
     }
 }
 
 void Flutronic::changer_params()
 {
-    pl.tempsBase = ui->tpsBase->value();
-    pl.fracTempsTransi = ui->tpsTransi->value();
+    pl.tempsBase = 60000 / ui->tpsBase->value();
 }
 
 void Flutronic::accorder_auto()
@@ -163,6 +177,15 @@ void Flutronic::enableControl()
 void Flutronic::disableControl()
 {
     setControlsEnabled(false);
+}
+
+void Flutronic::open_harmony_assistant()
+{
+//    QProcess * process = new QProcess(this);
+//    process->start("C:\\Program Files (x86)\\Harmony Assistant\\harmony.exe");
+    system("\"C:\\Program Files (x86)\\Harmony Assistant\\harmony.exe\"");
+//    QProcess::execute("start \"C:\\Program Files (x86)\\Harmony Assistant\\harmony.exe\"");
+    std::cout << "hello harmony" << std::endl;
 }
 
 void Flutronic::setControlsEnabled(bool enable)
